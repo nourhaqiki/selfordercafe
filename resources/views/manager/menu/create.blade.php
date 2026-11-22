@@ -1,0 +1,117 @@
+@extends('layouts.manager')
+
+@section('title', 'Tambah Menu Baru - Kopi & Mie Nusantara')
+
+@section('manager-content')
+<div class="max-w-2xl mx-auto space-y-4">
+    
+    <div class="flex items-center justify-between">
+        <a href="{{ route('manager.menu.index') }}" class="inline-flex items-center gap-1 text-xs font-bold text-stone-600 hover:text-stone-900">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <span>Kembali ke Daftar Menu</span>
+        </a>
+        <span class="text-xs text-stone-400">Master Data Menu</span>
+    </div>
+
+    <div class="p-6 bg-white rounded-2xl border border-stone-200 shadow-2xs">
+        <h2 class="text-lg font-bold text-stone-900 pb-3 border-b border-stone-100">Tambah Hidangan Baru</h2>
+
+        <form action="{{ route('manager.menu.store') }}" method="POST" class="mt-5 space-y-4">
+            @csrf
+
+            <!-- Name -->
+            <div>
+                <label for="name" class="block text-xs font-bold text-stone-700 uppercase mb-1">Nama Menu *</label>
+                <input 
+                    type="text" 
+                    name="name" 
+                    id="name" 
+                    value="{{ old('name') }}" 
+                    required 
+                    placeholder="Contoh: Mie Pedas Manis Spesial" 
+                    class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-700" />
+            </div>
+
+            <!-- Category & Price -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="category_id" class="block text-xs font-bold text-stone-700 uppercase mb-1">Kategori *</label>
+                    <select 
+                        name="category_id" 
+                        id="category_id" 
+                        required 
+                        class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-700">
+                        <option value="">Pilih Kategori</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label for="price" class="block text-xs font-bold text-stone-700 uppercase mb-1">Harga Jual (Rp) *</label>
+                    <input 
+                        type="number" 
+                        name="price" 
+                        id="price" 
+                        value="{{ old('price') }}" 
+                        required 
+                        min="0"
+                        step="500" 
+                        placeholder="Contoh: 14500" 
+                        class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-700" />
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-xs font-bold text-stone-700 uppercase mb-1">Deskripsi Porsi & Rasa</label>
+                <textarea 
+                    name="description" 
+                    id="description" 
+                    rows="3" 
+                    placeholder="Jelaskan tekstur, bumbu utama, serta pelengkap porsi hidangan..." 
+                    class="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-700 resize-none">{{ old('description') }}</textarea>
+            </div>
+
+            <!-- Image URL -->
+            <div>
+                <label for="image_url" class="block text-xs font-bold text-stone-700 uppercase mb-1">URL Gambar Produk</label>
+                <input 
+                    type="url" 
+                    name="image_url" 
+                    id="image_url" 
+                    value="{{ old('image_url', 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500&auto=format&fit=crop&q=80') }}" 
+                    placeholder="https://..." 
+                    class="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-700" />
+                <p class="text-[11px] text-stone-400 mt-1">Gunakan URL foto makanan rasio 4:3 berkualitas tajam.</p>
+            </div>
+
+            <!-- Checkbox Options -->
+            <div class="pt-2 border-t border-stone-100 space-y-2.5">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="has_spicy_levels" value="1" {{ old('has_spicy_levels') ? 'checked' : '' }} class="w-4 h-4 text-emerald-700 rounded">
+                    <span class="text-xs font-semibold text-stone-800">Aktifkan Pilihan Level Pedas (Level 0 sampai Level 8)</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="is_favorite" value="1" {{ old('is_favorite') ? 'checked' : '' }} class="w-4 h-4 text-emerald-700 rounded">
+                    <span class="text-xs font-semibold text-stone-800">Tandai sebagai Menu Favorit (Tampil menonjol di katalog)</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="is_available" value="1" checked class="w-4 h-4 text-emerald-700 rounded">
+                    <span class="text-xs font-semibold text-stone-800">Status Stok Tersedia (Dapat dipesan pelanggan)</span>
+                </label>
+            </div>
+
+            <div class="pt-4 flex gap-3">
+                <a href="{{ route('manager.menu.index') }}" class="min-h-[44px] px-4 py-2.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold">Batal</a>
+                <button type="submit" class="flex-1 min-h-[44px] py-2.5 px-4 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold tracking-wide shadow-xs">Simpan Menu Baru</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+@endsection
+

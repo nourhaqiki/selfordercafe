@@ -1,0 +1,68 @@
+@import url('https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: #FAFAF9;
+    color: #1C1917;
+    font-feature-settings: 'cv11', 'ss01', 'cv02';
+  }
+
+  /* Interaction affordances: R-39 & R-32 compliance */
+  a[href],
+  button:not(:disabled),
+  summary,
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  /* Accessible focus indicators */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #FAFAF9, 0 0 0 4px #047857;
+  }
+}
+
+@layer components {
+  /* Bistro Ticket Perforated Edge Effect */
+  .bistro-ticket-edge {
+    background-image: radial-gradient(circle at 10px, transparent 10px, #FFFFFF 10px);
+    background-size: 20px 20px;
+  }
+  
+  /* Numerical Tabular Alignment */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar for clean horizontal category pills */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
