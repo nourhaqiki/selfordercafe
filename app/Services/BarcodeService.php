@@ -5,23 +5,44 @@ namespace App\Services;
 class BarcodeService
 {
     /**
-     * Generate a simple PNG data URI for the given string.
-     * Uses GD to draw the string; for production replace with proper QR library.
+     * Generate a simple SVG-based barcode data URI.
+     * Uses inline SVG instead of GD — no image library needed, much lighter.
      */
     public function generate(string $data): string
     {
-        $width = 200;
-        $height = 200;
-        $im = imagecreatetruecolor($width, $height);
-        $bg = imagecolorallocate($im, 255, 255, 255);
-        $fg = imagecolorallocate($im, 0, 0, 0);
-        imagefilledrectangle($im, 0, 0, $width, $height, $bg);
-        // Simple placeholder: render the raw data as text
-        imagestring($im, 5, 10, $height / 2 - 10, $data, $fg);
-        ob_start();
-        imagepng($im);
-        $png = ob_get_clean();
-        imagedestroy($im);
-        return 'data:image/png;base64,' . base64_encode($png);
+        $encoded = htmlspecialchars($data, ENT_XML1, 'UTF-8');
+        $bars = $this->textToBars($data);
+        $barWidth = 2;
+        $svgWidth = count($bars) * $barWidth;
+        $svgHeight = 80;
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $svgWidth . '" height="' . ($svgHeight + 20) . '" viewBox="0 0 ' . $svgWidth . ' ' . ($svgHeight + 20) . '">';
+        $svg .= '<rect width="100%" height="100%" fill="white"/>';
+
+        $x = 0;
+        foreach ($bars as $bar) {
+            if ($bar) {
+                $svg .= '<rect x="' . $x . '" y="0" width="' . $barWidth . '" height="' . $svgHeight . '" fill="black"/>';
+            }
+            $x += $barWidth;
+        }
+
+        $svg .= '<text x="' . ($svgWidth / 2) . '" y="' . ($svgHeight + 14) . '" text-anchor="middle" font-family="monospace" font-size="11" fill="black">' . $encoded . '</text>';
+        $svg .= '</svg>';
+
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
+    }
+
+    private function textToBars(string $text): array
+    {
+        $bars = [];
+        foreach (str_split($text) as $char) {
+            $val = ord($char);
+            for ($i = 7; $i >= 0; $i--) {
+                $bars[] = ($val >> $i) & 1;
+            }
+            $bars[] = 0; // separator
+        }
+        return $bars;
     }
 }

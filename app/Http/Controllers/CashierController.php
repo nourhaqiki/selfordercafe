@@ -22,7 +22,7 @@ class CashierController extends Controller
         }
         $statusFilter = $request->query('status', session('cashier_status_filter', 'PENDING_PAYMENT'));
 
-        $query = Order::forCashier()->where('status','!=',Order::STATUS_PENDING_PAYMENT)->with('items')->latest();
+        $query = Order::forCashier()->with('items')->latest();
 
         if ($statusFilter !== 'all') {
             $query->where('status', $statusFilter);

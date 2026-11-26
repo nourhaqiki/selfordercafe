@@ -159,6 +159,19 @@
 </div>
 
 <script>
-    window.setInterval(() => window.location.reload(), 15000);
+    // Auto-refresh via fetch instead of full page reload — lighter on resources
+    setInterval(() => {
+        fetch(window.location.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+            .then(r => r.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const fresh = doc.querySelector('[aria-label="Ringkasan kasir"]');
+                const list = doc.querySelector('[aria-label="Antrean pesanan kasir"]');
+                if (fresh) document.querySelector('[aria-label="Ringkasan kasir"]').innerHTML = fresh.innerHTML;
+                if (list) document.querySelector('[aria-label="Antrean pesanan kasir"]').innerHTML = list.innerHTML;
+            })
+            .catch(() => {});
+    }, 15000);
 </script>
 @endsection

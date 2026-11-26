@@ -266,6 +266,22 @@ class ManagerController extends Controller
         return view('manager.tables.print', compact('tables'));
     }
 
+    public function tableDestroy(int $id): RedirectResponse
+    {
+        $table = CafeTable::findOrFail($id);
+        $hasActiveOrders = Order::where('table_number', $table->table_number)
+            ->whereIn('status', [Order::STATUS_PENDING_PAYMENT, Order::STATUS_PAID, Order::STATUS_PREPARING])
+            ->exists();
+
+        if ($hasActiveOrders) {
+            return back()->with('error', "Meja {$table->table_number} tidak dapat dihapus karena masih ada pesanan aktif.");
+        }
+
+        $num = $table->table_number;
+        $table->delete();
+        return back()->with('warning', "Meja {$num} telah dihapus.");
+    }
+
     public function monitorCashier(Request $request): View
     {
         if ($request->has('status')) {

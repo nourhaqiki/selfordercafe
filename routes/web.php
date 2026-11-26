@@ -68,6 +68,7 @@ Route::prefix('manager')->name('manager.')->middleware(['auth', 'role:manager'])
     // Tables & QR Code Generator
     Route::get('/tables', [ManagerController::class, 'tablesIndex'])->name('tables.index');
     Route::post('/tables', [ManagerController::class, 'tableStore'])->name('tables.store');
+    Route::delete('/tables/{id}', [ManagerController::class, 'tableDestroy'])->name('tables.destroy');
     Route::post('/tables/mass-generate', [ManagerController::class, 'massGenerateTables'])->name('tables.massGenerate');
     Route::get('/tables/print-qrs', [ManagerController::class, 'printQRs'])->name('tables.printQRs');
 
@@ -75,12 +76,4 @@ Route::prefix('manager')->name('manager.')->middleware(['auth', 'role:manager'])
     Route::get('/reports', [ManagerController::class, 'reports'])->name('reports.index');
     // Manager monitor cashier with manager header
     Route::get('/cashier/monitor', [ManagerController::class, 'monitorCashier'])->name('cashier.monitor');
-
-    // Cancel pending order before checkout (clears cart)
-    Route::post('/order/cancel-pending', [CustomerOrderController::class, 'cancelPending'])->name('customer.cancelPending');
-
-    // Receipt view after payment
-    Route::get('/order/receipt/{orderCode}', [CustomerOrderController::class, 'receipt'])->name('customer.receipt');
-
-    
 });

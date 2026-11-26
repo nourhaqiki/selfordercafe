@@ -147,6 +147,11 @@
                            class="text-[10px] font-bold text-emerald-800 hover:underline">
                             Tes Order →
                         </a>
+                        <form action="{{ route('manager.tables.destroy', $tbl->id) }}" method="POST" onsubmit="return confirm('Hapus meja {{ $tbl->table_number }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-[10px] font-bold text-red-700 hover:text-red-900 hover:underline cursor-pointer">Hapus</button>
+                        </form>
                     </div>
                 </div>
             @empty

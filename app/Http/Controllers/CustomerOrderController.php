@@ -322,28 +322,6 @@ class CustomerOrderController extends Controller
         return back()->with('info', 'Konfirmasi pembayaran telah dikirim ke Kasir. Menunggu verifikasi staf kasir.');
     }
 
-    /**
-     * Cancel an order that is still pending payment.
-     * Uses the active order code stored in session if no code is supplied.
-     */
-    public function cancelPending(Request $request): RedirectResponse
-    {
-        $orderCode = $request->input('order_code') ?? session('active_order_code');
-        if (!$orderCode) {
-            return back()->with('error', 'Tidak ada pesanan yang dapat dibatalkan.');
-        }
-        $order = Order::where('order_code', $orderCode)->firstOrFail();
-        if ($order->status !== Order::STATUS_PENDING_PAYMENT) {
-            return back()->with('error', 'Pesanan sudah diproses dan tidak dapat dibatalkan.');
-        }
-        $order->update([
-            'status' => Order::STATUS_CANCELLED,
-            'notes' => trim($order->notes . ' [Dibatalkan oleh pelanggan]'),
-        ]);
-        session()->forget(['active_order_code', 'cart']);
-        return redirect()->route('customer.catalog')->with('info', "Pesanan {$order->order_code} berhasil dibatalkan.");
-    }
-
     public function cancelOrder(string $orderCode): RedirectResponse
     {
         $order = Order::where('order_code', $orderCode)->firstOrFail();
@@ -353,7 +331,7 @@ class CustomerOrderController extends Controller
                 'status' => Order::STATUS_CANCELLED,
                 'notes' => trim($order->notes . ' [Dibatalkan oleh pelanggan]'),
             ]);
-            session()->forget('active_order_code');
+            session()->forget(['active_order_code', 'cart']);
             return redirect()->route('customer.catalog')->with('info', "Pesanan {$order->order_code} berhasil dibatalkan.");
         }
 
