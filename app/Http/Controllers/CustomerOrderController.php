@@ -104,13 +104,14 @@ class CustomerOrderController extends Controller
         $validated = $request->validate([
             'menu_id' => 'required|exists:menus,id',
             'quantity' => 'nullable|integer|min:1|max:50',
-            'spicy_level' => 'nullable|integer|min:0|max:8',
+            'spicy_level' => 'nullable|integer|min:0|max:50',
             'notes' => 'nullable|string|max:200',
         ]);
 
         $menu = Menu::findOrFail($validated['menu_id']);
         $quantity = $validated['quantity'] ?? 1;
-        $spicyLevel = $validated['spicy_level'] ?? 0;
+        $maxSpicy = $menu->has_spicy_levels ? max(1, (int) ($menu->max_spicy_level ?? 8)) : 0;
+        $spicyLevel = min((int) ($validated['spicy_level'] ?? 0), $maxSpicy);
         $notes = trim($validated['notes'] ?? '');
 
         // Cart key combines menu_id + spicy_level to allow multiple variants in cart
@@ -255,16 +256,18 @@ class CustomerOrderController extends Controller
         // Generate unique order code: ORD-YYYYMMDD-XXXX
         $orderCode = 'ORD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
 
+        $customerName = trim($validated['customer_name'] ?? '');
+
         $order = Order::create([
             'order_code' => $orderCode,
             'table_number' => $tableNumber,
-            'customer_name' => $validated['customer_name'] ?? 'Pelanggan Meja ' . $tableNumber,
-                        'status' => $validated['payment_method'] === 'cash' ? Order::STATUS_PAID : Order::STATUS_PENDING_PAYMENT,
-            'paid_at' => $validated['payment_method'] === 'cash' ? now() : null,
+            'customer_name' => $customerName !== '' ? $customerName : 'Pelanggan Meja ' . $tableNumber,
+            'status' => Order::STATUS_PENDING_PAYMENT,
+            'paid_at' => null,
             'payment_method' => $validated['payment_method'],
             'total_amount' => $totalAmount,
             'notes' => $validated['order_notes'] ?? null,
-            'customer_paid_at' => $validated['payment_method'] === 'cash' ? now() : null,
+            'customer_paid_at' => null,
         ]);
 
         foreach ($cart as $item) {
@@ -317,8 +320,13 @@ class CustomerOrderController extends Controller
     public function simulateCustomerPay(string $orderCode): RedirectResponse
     {
         $order = Order::where('order_code', $orderCode)->firstOrFail();
+
+        if ($order->status !== Order::STATUS_PENDING_PAYMENT) {
+            return back()->with('info', "Pesanan {$order->order_code} sudah berstatus {$order->status_label}.");
+        }
+
         $order->update(['customer_paid_at' => now()]);
-        
+
         return back()->with('info', 'Konfirmasi pembayaran telah dikirim ke Kasir. Menunggu verifikasi staf kasir.');
     }
 

@@ -91,7 +91,7 @@ class CashierController extends Controller
             'items' => 'required|array|min:1',
             'items.*.menu_id' => 'required|exists:menus,id',
             'items.*.quantity' => 'required|integer|min:0|max:50',
-            'items.*.spicy_level' => 'nullable|integer|min:0|max:8',
+            'items.*.spicy_level' => 'nullable|integer|min:0|max:50',
             'items.*.notes' => 'nullable|string|max:200',
             'order_notes' => 'nullable|string|max:300',
         ]);
@@ -129,13 +129,14 @@ class CashierController extends Controller
         foreach ($orderItemsData as $item) {
             $menu = $menus->get($item['menu_id']);
             if ($menu) {
+                $maxSpicy = $menu->has_spicy_levels ? max(1, (int) ($menu->max_spicy_level ?? 8)) : 0;
                 OrderItem::create([
                     'order_id' => $order->id,
                     'menu_id' => $menu->id,
                     'menu_name' => $menu->name,
                     'price' => $menu->price,
                     'quantity' => $item['quantity'],
-                    'spicy_level' => $item['spicy_level'] ?? 0,
+                    'spicy_level' => min((int) ($item['spicy_level'] ?? 0), $maxSpicy),
                     'notes' => $item['notes'] ?? null,
                     'subtotal' => $menu->price * $item['quantity'],
                 ]);

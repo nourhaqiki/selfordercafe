@@ -44,7 +44,7 @@ class Order extends Model
     public function scopeForCashier($query)
     {
         return $query->where(function ($q) {
-            $q->where('payment_method', 'cash')
+            $q->whereIn('payment_method', ['cash', 'debit'])
               ->orWhereNotNull('customer_paid_at')
               ->orWhereNotNull('paid_at')
               ->orWhereIn('status', [self::STATUS_PAID, self::STATUS_PREPARING, self::STATUS_COMPLETED]);

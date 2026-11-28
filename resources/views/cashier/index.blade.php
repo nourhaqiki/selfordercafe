@@ -135,6 +135,11 @@
                     <div>
                         <span class="text-[10px] text-stone-500 font-bold uppercase block">Pembayaran</span>
                         <span class="text-sm font-extrabold text-stone-900">{{ $selectedOrder->payment_method_label }}</span>
+                        @if($selectedOrder->status === \App\Models\Order::STATUS_PENDING_PAYMENT)
+                            <span class="text-[10px] font-bold block mt-0.5 {{ $selectedOrder->customer_paid_at ? 'text-emerald-700' : 'text-amber-700' }}">
+                                {{ $selectedOrder->customer_paid_at ? '✓ Pelanggan konfirmasi sudah bayar (' . $selectedOrder->customer_paid_at->format('H:i') . ')' : 'Belum konfirmasi pembayaran' }}
+                            </span>
+                        @endif
                     </div>
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold {{ $selectedOrder->status === 'PENDING_PAYMENT' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-300' }}">
                         <span class="w-2 h-2 rounded-full {{ $selectedOrder->status === 'PENDING_PAYMENT' ? 'bg-amber-600' : 'bg-emerald-700' }}"></span>
@@ -302,6 +307,11 @@
                         <div>
                             <span class="text-[10px] text-stone-500 font-bold uppercase tracking-wider block">Metode Pembayaran</span>
                             <span class="text-sm font-extrabold text-stone-900">{{ $selectedOrder->payment_method_label }}</span>
+                            @if($selectedOrder->status === \App\Models\Order::STATUS_PENDING_PAYMENT)
+                                <span class="text-[11px] font-bold block mt-0.5 {{ $selectedOrder->customer_paid_at ? 'text-emerald-700' : 'text-amber-700' }}">
+                                    {{ $selectedOrder->customer_paid_at ? '✓ Pelanggan konfirmasi sudah bayar (' . $selectedOrder->customer_paid_at->format('H:i') . ')' : 'Belum konfirmasi pembayaran — pastikan dana sudah diterima' }}
+                                </span>
+                            @endif
                         </div>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold {{ $selectedOrder->status === 'PENDING_PAYMENT' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-300' }}">
                             <span class="w-2 h-2 rounded-full {{ $selectedOrder->status === 'PENDING_PAYMENT' ? 'bg-amber-600' : 'bg-emerald-700' }}"></span>
@@ -411,7 +421,7 @@
         fetch(pollUrl)
             .then(res => res.json())
             .then(data => {
-                if (data.pending_count > lastPendingCount) {
+                if (data.pending_count !== lastPendingCount) {
                     lastPendingCount = data.pending_count;
                     window.location.reload();
                 }

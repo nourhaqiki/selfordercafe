@@ -101,7 +101,7 @@
                             <td class="py-3 px-4">
                                 @if($menu->has_spicy_levels)
                                     <span class="px-2 py-0.5 rounded bg-orange-100 text-orange-900 text-[11px] font-bold">
-                                        Level 0-8
+                                        Level 0-{{ $menu->max_spicy_level ?? 8 }}
                                     </span>
                                 @else
                                     <span class="text-stone-400 text-[11px]">Non-pedas</span>

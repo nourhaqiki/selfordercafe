@@ -105,6 +105,7 @@ class ManagerController extends Controller
             'image_url' => 'nullable|url|max:500',
             'is_available' => 'nullable|boolean',
             'has_spicy_levels' => 'nullable|boolean',
+            'max_spicy_level' => 'nullable|integer|min:1|max:20',
             'is_favorite' => 'nullable|boolean',
             'sort_order' => 'nullable|integer',
         ]);
@@ -112,6 +113,7 @@ class ManagerController extends Controller
         $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(4);
         $validated['is_available'] = $request->has('is_available');
         $validated['has_spicy_levels'] = $request->has('has_spicy_levels');
+        $validated['max_spicy_level'] = (int) ($validated['max_spicy_level'] ?? 8);
         $validated['is_favorite'] = $request->has('is_favorite');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
@@ -137,11 +139,13 @@ class ManagerController extends Controller
             'description' => 'nullable|string|max:500',
             'price' => 'required|numeric|min:0',
             'image_url' => 'nullable|url|max:500',
+            'max_spicy_level' => 'nullable|integer|min:1|max:20',
             'sort_order' => 'nullable|integer',
         ]);
 
         $validated['is_available'] = $request->has('is_available');
         $validated['has_spicy_levels'] = $request->has('has_spicy_levels');
+        $validated['max_spicy_level'] = (int) ($validated['max_spicy_level'] ?? ($menu->max_spicy_level ?? 8));
         $validated['is_favorite'] = $request->has('is_favorite');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 

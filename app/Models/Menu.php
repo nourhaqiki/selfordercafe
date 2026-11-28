@@ -19,6 +19,7 @@ class Menu extends Model
         'image_url',
         'is_available',
         'has_spicy_levels',
+        'max_spicy_level',
         'is_favorite',
         'sort_order',
     ];
@@ -27,6 +28,7 @@ class Menu extends Model
         'price' => 'decimal:2',
         'is_available' => 'boolean',
         'has_spicy_levels' => 'boolean',
+        'max_spicy_level' => 'integer',
         'is_favorite' => 'boolean',
         'sort_order' => 'integer',
     ];

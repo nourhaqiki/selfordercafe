@@ -377,4 +377,94 @@ class CafeSelfOrderTest extends TestCase
         $catalogResponse->assertSee($order->order_code);
         $catalogResponse->assertSee('PESANAN ANDA SEDANG AKTIF');
     }
+
+    public function test_all_customer_payment_methods_require_cashier_approval_before_paid_status(): void
+    {
+        $cashier = $this->cashierUser();
+        $menu = Menu::first();
+
+        foreach (['cash', 'qris', 'transfer', 'debit'] as $method) {
+            $this->withSession(['table_number' => '05'])
+                ->post('/cart/add', ['menu_id' => $menu->id, 'quantity' => 1])
+                ->assertRedirect();
+
+            $this->withSession(['table_number' => '05', 'cart' => session('cart')])
+                ->post('/order/submit', [
+                    'customer_name' => 'Test ' . strtoupper($method),
+                    'payment_method' => $method,
+                ])
+                ->assertRedirect();
+
+            $order = Order::where('customer_name', 'Test ' . strtoupper($method))->latest('id')->first();
+            $this->assertNotNull($order);
+            $this->assertEquals(Order::STATUS_PENDING_PAYMENT, $order->status);
+            $this->assertNull($order->paid_at);
+
+            $trackBefore = $this->get("/order/track/{$order->order_code}");
+            $trackBefore->assertOk();
+            $trackBefore->assertSee('BELUM DIBAYAR');
+            $trackBefore->assertDontSee('SUDAH DIBAYAR');
+            if ($method === 'debit') {
+                $trackBefore->assertSee('Kartu Debit / mesin EDC');
+                $trackBefore->assertDontSee('8920-1284-9900');
+            }
+
+            $this->actingAs($cashier)->post("/cashier/order/{$order->id}/approve")->assertRedirect();
+            $order->refresh();
+            $this->assertEquals(Order::STATUS_PAID, $order->status);
+            $this->assertNotNull($order->paid_at);
+
+            $trackAfter = $this->get("/order/track/{$order->order_code}");
+            $trackAfter->assertOk();
+            $trackAfter->assertSee('SUDAH DIBAYAR');
+
+            $order->items()->delete();
+            $order->delete();
+        }
+    }
+
+    public function test_manager_can_configure_custom_max_spicy_level_on_create_and_edit(): void
+    {
+        $manager = $this->managerUser();
+        $category = Category::first();
+
+        $this->actingAs($manager)->post('/manager/menus', [
+            'category_id' => $category->id,
+            'name' => 'Mie Uji Level Pedas',
+            'price' => 18000,
+            'has_spicy_levels' => '1',
+            'max_spicy_level' => 5,
+            'is_available' => '1',
+        ])->assertRedirect('/manager/menus');
+
+        $menu = Menu::where('name', 'Mie Uji Level Pedas')->latest('id')->first();
+        $this->assertNotNull($menu);
+        $this->assertTrue($menu->has_spicy_levels);
+        $this->assertEquals(5, $menu->max_spicy_level);
+
+        $this->actingAs($manager)->put("/manager/menus/{$menu->id}", [
+            'category_id' => $category->id,
+            'name' => 'Mie Uji Level Pedas',
+            'price' => 18000,
+            'has_spicy_levels' => '1',
+            'max_spicy_level' => 4,
+            'is_available' => '1',
+        ])->assertRedirect('/manager/menus');
+
+        $menu->refresh();
+        $this->assertEquals(4, $menu->max_spicy_level);
+
+        $this->post('/cart/add', [
+            'menu_id' => $menu->id,
+            'quantity' => 1,
+            'spicy_level' => 7,
+        ])->assertRedirect();
+
+        $cart = session('cart', []);
+        $added = collect($cart)->firstWhere('menu_id', $menu->id);
+        $this->assertNotNull($added);
+        $this->assertEquals(4, $added['spicy_level']);
+
+        $menu->delete();
+    }
 }

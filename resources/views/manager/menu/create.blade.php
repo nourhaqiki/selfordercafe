@@ -90,9 +90,22 @@
             <!-- Checkbox Options -->
             <div class="pt-2 border-t border-stone-100 space-y-2.5">
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="has_spicy_levels" value="1" {{ old('has_spicy_levels') ? 'checked' : '' }} class="w-4 h-4 text-emerald-700 rounded">
-                    <span class="text-xs font-semibold text-stone-800">Aktifkan Pilihan Level Pedas (Level 0 sampai Level 8)</span>
+                    <input type="checkbox" name="has_spicy_levels" id="has_spicy_levels" value="1" {{ old('has_spicy_levels') ? 'checked' : '' }} onchange="document.getElementById('max-spicy-wrap').classList.toggle('hidden', !this.checked)" class="w-4 h-4 text-emerald-700 rounded">
+                    <span class="text-xs font-semibold text-stone-800">Aktifkan Pilihan Level Pedas</span>
                 </label>
+
+                <div id="max-spicy-wrap" class="{{ old('has_spicy_levels') ? '' : 'hidden' }} pl-6">
+                    <label for="max_spicy_level" class="block text-[11px] font-bold text-stone-700 uppercase mb-1">Maksimal Level Pedas (1 - 20)</label>
+                    <input
+                        type="number"
+                        name="max_spicy_level"
+                        id="max_spicy_level"
+                        min="1"
+                        max="20"
+                        value="{{ old('max_spicy_level', 8) }}"
+                        class="w-32 px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-700" />
+                    <p class="text-[11px] text-stone-400 mt-1">Pelanggan bisa memilih dari Level 0 sampai level maksimal ini (contoh: 4, 5, 8).</p>
+                </div>
 
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="is_favorite" value="1" {{ old('is_favorite') ? 'checked' : '' }} class="w-4 h-4 text-emerald-700 rounded">

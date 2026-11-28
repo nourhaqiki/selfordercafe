@@ -178,21 +178,31 @@
                     <div class="p-3.5 bg-white rounded-2xl border border-amber-200 text-xs sm:text-sm text-stone-700 leading-relaxed">
                         Silakan menuju ke meja kasir dan sebutkan <strong>Meja {{ $order->table_number }}</strong> atau kode tiket <strong>{{ $order->order_code }}</strong> untuk membayar secara tunai.
                     </div>
+                @elseif($order->payment_method === 'debit')
+                    <div class="p-3.5 bg-white rounded-2xl border border-amber-200 text-xs sm:text-sm text-stone-700 leading-relaxed">
+                        Silakan menuju ke meja kasir dan sebutkan <strong>Meja {{ $order->table_number }}</strong> atau kode tiket <strong>{{ $order->order_code }}</strong> untuk pembayaran menggunakan <strong>Kartu Debit / mesin EDC</strong>.
+                    </div>
                 @else
                     <div class="p-3.5 bg-white rounded-2xl border border-amber-200 text-xs sm:text-sm text-stone-700 leading-relaxed">
                         Transfer ke rekening BCA Cafe: <strong>8920-1284-9900</strong> a/n Kopi &amp; Mie Nusantara sebesar <strong>{{ $order->formatted_total }}</strong>.
                     </div>
                 @endif
 
-                <form action="{{ route('customer.simulatePay', ['orderCode' => $order->order_code]) }}" method="POST">
-                    @csrf
-                    <button 
-                        type="submit" 
-                        class="w-full min-h-[48px] py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs sm:text-sm font-bold cursor-pointer transition-colors flex items-center justify-center gap-2 shadow-xs">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Saya Sudah Menyelesaikan Pembayaran</span>
-                    </button>
-                </form>
+                @if($order->customer_paid_at)
+                    <div class="p-3.5 rounded-xl bg-amber-100/80 border border-amber-300 text-amber-900 text-xs sm:text-sm font-bold text-center">
+                        ✓ Konfirmasi pembayaran Anda sudah dikirim ke kasir pada {{ $order->customer_paid_at->format('H:i') }} WIB. Menunggu verifikasi kasir.
+                    </div>
+                @else
+                    <form action="{{ route('customer.simulatePay', ['orderCode' => $order->order_code]) }}" method="POST">
+                        @csrf
+                        <button 
+                            type="submit" 
+                            class="w-full min-h-[48px] py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs sm:text-sm font-bold cursor-pointer transition-colors flex items-center justify-center gap-2 shadow-xs">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Saya Sudah Menyelesaikan Pembayaran</span>
+                        </button>
+                    </form>
+                @endif
 
                 <form action="{{ route('customer.cancelOrder', ['orderCode' => $order->order_code]) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')">
                     @csrf
@@ -257,8 +267,8 @@
                     <span class="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300">BELUM DIBAYAR</span>
                 @endif
 
-                {{-- Cash payment: prominent instruction --}}
-                @if($order->payment_method === 'cash' && $order->status === \App\Models\Order::STATUS_PENDING_PAYMENT)
+                {{-- Cash / Debit payment: prominent instruction --}}
+                @if(in_array($order->payment_method, ['cash', 'debit']) && $order->status === \App\Models\Order::STATUS_PENDING_PAYMENT)
                     <div class="p-3 rounded-xl bg-amber-50 border-2 border-amber-400 text-amber-900">
                         <span class="text-sm font-black block">📋 TUNJUKKAN KE KASIR</span>
                         <span class="text-[11px] font-bold block mt-1">Meja {{ $order->table_number }} · {{ $order->formatted_total }}</span>

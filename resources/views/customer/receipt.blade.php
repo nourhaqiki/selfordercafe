@@ -17,7 +17,7 @@
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-stone-600">Status</span>
-                <span class="font-bold {{ $order->status === 'PAID' || $order->status === 'COMPLETED' ? 'text-emerald-700' : 'text-amber-700' }}">{{ $order->status_label }}</span>
+                <span class="font-bold {{ in_array($order->status, ['PAID', 'PREPARING', 'COMPLETED']) ? 'text-emerald-700' : 'text-amber-700' }}">{{ $order->status_label }}</span>
             </div>
 
             <div class="divide-y divide-stone-200 border border-stone-200 rounded-lg">

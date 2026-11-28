@@ -112,7 +112,7 @@
     {{-- Signature Hero Highlight Card --}}
     @if($signatureMenu && $activeCategorySlug === 'all' && $searchKeyword === '')
         <article class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-stone-900 shadow-md group cursor-pointer transition-transform active:scale-[0.99]"
-                 onclick="openModifierModal({{ $signatureMenu->id }}, '{{ addslashes($signatureMenu->name) }}', {{ $signatureMenu->price }}, {{ $signatureMenu->has_spicy_levels ? 'true' : 'false' }})"
+                 onclick="openModifierModal({{ $signatureMenu->id }}, '{{ addslashes($signatureMenu->name) }}', {{ $signatureMenu->price }}, {{ $signatureMenu->has_spicy_levels ? 'true' : 'false' }}, {{ $signatureMenu->max_spicy_level ?? 8 }})"
                  role="button"
                  tabindex="0"
                  aria-label="Pesan hidangan terpopuler {{ $signatureMenu->name }} seharga {{ $signatureMenu->formatted_price }}">
@@ -133,7 +133,7 @@
                     </span>
                     @if($signatureMenu->has_spicy_levels)
                         <span class="px-2.5 py-1 rounded-full bg-orange-600 text-white text-[10px] font-extrabold shadow-sm">
-                            Pilihan Level 0 - 8
+                            Pilihan Level 0 - {{ $signatureMenu->max_spicy_level ?? 8 }}
                         </span>
                     @endif
                 </div>
@@ -224,7 +224,7 @@
 
                             <button
                                 type="button"
-                                onclick="openModifierModal({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ $menu->price }}, {{ $menu->has_spicy_levels ? 'true' : 'false' }})"
+                                onclick="openModifierModal({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ $menu->price }}, {{ $menu->has_spicy_levels ? 'true' : 'false' }}, {{ $menu->max_spicy_level ?? 8 }})"
                                 aria-label="Tambah {{ $menu->name }} ke pesanan meja"
                                 class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white
                                        flex items-center justify-center shadow-xs cursor-pointer transition-all shrink-0
@@ -665,7 +665,36 @@
     });
 
     // ---- Modifier Modal Handling ----
-    function openModifierModal(id, name, price, hasSpicy) {
+    function renderSpicyOptions(maxSpicy, hasSpicy) {
+        var grid = document.getElementById('spicy-grid');
+        if (!grid) return;
+        var limit = hasSpicy ? Math.max(1, parseInt(maxSpicy) || 8) : 0;
+        var defaultLvl = hasSpicy ? 1 : 0;
+        var html = '';
+
+        for (var lvl = 0; lvl <= limit; lvl++) {
+            var title = lvl === 0 ? 'Lv0' : 'Lvl ' + lvl;
+            var subtitle = lvl === 0 ? 'No Cabai' : (lvl <= 2 ? 'Pedas Pas' : (lvl <= 4 ? 'Ekstra' : 'Nusantara'));
+            html += '<label class="spicy-label relative flex flex-col items-center justify-center min-h-[54px] p-2 rounded-2xl border-2 cursor-pointer transition-all select-none active:scale-95" style="transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);">'
+                + '<input type="radio" name="spicy_level" value="' + lvl + '" ' + (lvl === defaultLvl ? 'checked' : '') + ' class="sr-only spicy-radio" onchange="updateSpicyUI()">'
+                + '<span class="spicy-title text-xs font-black leading-tight">' + title + '</span>'
+                + '<span class="spicy-subtitle text-[9px] font-semibold leading-tight mt-0.5">' + subtitle + '</span>'
+                + '</label>';
+        }
+        grid.innerHTML = html;
+        grid.querySelectorAll('.spicy-label').forEach(function(label) {
+            label.addEventListener('click', function() {
+                var radio = this.querySelector('.spicy-radio');
+                if (radio) {
+                    radio.checked = true;
+                    updateSpicyUI();
+                }
+            });
+        });
+        updateSpicyUI();
+    }
+
+    function openModifierModal(id, name, price, hasSpicy, maxSpicy) {
         document.getElementById('modal-menu-id').value = id;
         document.getElementById('modal-menu-name').textContent = name;
         currentPrice = Number(price);
@@ -677,11 +706,7 @@
         var spicySection = document.getElementById('spicy-level-section');
         spicySection.classList.toggle('hidden', !hasSpicy);
 
-        // Reset spicy to level 1 for spicy items, level 0 for non-spicy
-        document.querySelectorAll('.spicy-radio').forEach(function(r) {
-            r.checked = (parseInt(r.value) === (hasSpicy ? 1 : 0));
-        });
-        updateSpicyUI();
+        renderSpicyOptions(maxSpicy || 8, hasSpicy);
 
         document.getElementById('modifier-modal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';

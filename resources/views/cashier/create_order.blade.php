@@ -172,13 +172,11 @@
                                                     <div class="flex items-center gap-1.5 mt-1.5">
                                                         <span class="text-[10px] text-stone-500 font-bold">Level:</span>
                                                         <select name="items[{{ $itemIndex }}][spicy_level]" class="text-[11px] font-bold py-0.5 px-2 bg-stone-50 border border-stone-200 rounded-lg text-stone-800">
-                                                            <option value="0">Level 0 (0)</option>
-                                                            <option value="1" selected>Pedas Sedang (1)</option>
-                                                            <option value="2">Pedas Pas (2)</option>
-                                                            <option value="3">Ekstra Pedas (3)</option>
-                                                            <option value="4">Level 4</option>
-                                                            <option value="6">Level 6</option>
-                                                            <option value="8">Level 8</option>
+                                                            @for($lvl = 0; $lvl <= ($menu->max_spicy_level ?? 8); $lvl++)
+                                                                <option value="{{ $lvl }}" {{ $lvl === 1 ? 'selected' : '' }}>
+                                                                    {{ $lvl === 0 ? 'Level 0 (Tidak Pedas)' : 'Level ' . $lvl }}
+                                                                </option>
+                                                            @endfor
                                                         </select>
                                                     </div>
                                                 @endif
